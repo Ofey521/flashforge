@@ -151,7 +151,7 @@ def add_notes(req: AddNotesRequest):
 
 
 class FindNotesRequest(BaseModel):
-    query: str  # Anki search syntax, e.g. "deck:zbocznica::n8n Przód:protect*"
+    query: str  # Anki search syntax, e.g. "deck:vocabulary::słówka_moje Przód:protect*"
 
 
 @app.post("/find_notes", dependencies=[Depends(auth_check)])

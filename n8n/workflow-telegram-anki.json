@@ -3,19 +3,24 @@
   "nodes": [
     {
       "parameters": {
-        "updates": ["message"],
-        "additionalFields": {"appendAttribution": false}
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
-      "position": [0, 0],
-      "id": "t1-trigger",
+      "position": [
+        -2336,
+        144
+      ],
+      "id": "817d824a-6091-49b6-b3d4-1a4bb4598cae",
       "name": "Telegram Trigger",
       "webhookId": "telegram-anki-trigger",
       "credentials": {
         "telegramApi": {
-          "id": "",
-          "name": "Telegram API"
+          "id": "q7CNsecQRzTAvAZw",
+          "name": "Telegram account"
         }
       }
     },
@@ -32,13 +37,16 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 0],
-      "id": "t2-quick",
+      "position": [
+        -2112,
+        144
+      ],
+      "id": "f93acad4-2e1b-49fc-a13a-a94252d5c22e",
       "name": "GPT-4o-mini Translate",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "",
-          "name": "OpenAI Bearer"
+          "id": "x1LIcKyhcOqqS85R",
+          "name": "openai-Anki"
         }
       }
     },
@@ -49,8 +57,11 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [480, 0],
-      "id": "t3-parse-quick",
+      "position": [
+        -1856,
+        144
+      ],
+      "id": "cf4a3321-69f4-4c49-8f13-10341b456c86",
       "name": "Parse translation"
     },
     {
@@ -81,25 +92,34 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [720, 0],
-      "id": "t4-if-valid",
+      "position": [
+        -1616,
+        144
+      ],
+      "id": "a3dbec09-19ae-4e4f-8315-89014ef5e787",
       "name": "Is valid?"
     },
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ '❌ Nie rozpoznaję słowa: ' + $('Telegram Trigger').item.json.message.text }}",
-        "additionalFields": {"appendAttribution": false}
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [960, 120],
-      "id": "t5-reply-invalid",
+      "position": [
+        -1376,
+        272
+      ],
+      "id": "59c3874d-6df7-4346-b6d7-650f904339d0",
       "name": "Reply invalid",
+      "webhookId": "868d5a22-32b1-4122-b6a5-c08a7d6b661c",
       "credentials": {
         "telegramApi": {
-          "id": "",
-          "name": "Telegram API"
+          "id": "q7CNsecQRzTAvAZw",
+          "name": "Telegram account"
         }
       }
     },
@@ -107,17 +127,23 @@
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ $('Parse translation').item.json.corrected_from ? '✅ ' + $('Parse translation').item.json.word + ' → ' + $('Parse translation').item.json.translation + ' (autokorekta: ' + $('Parse translation').item.json.corrected_from + ')' : '✅ ' + $('Parse translation').item.json.word + ' → ' + $('Parse translation').item.json.translation }}",
-        "additionalFields": {"appendAttribution": false}
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [960, -80],
-      "id": "t6-reply-ok",
+      "position": [
+        -1376,
+        64
+      ],
+      "id": "b9727e3b-c942-48e7-8c85-ae9701f93928",
       "name": "Reply OK",
+      "webhookId": "766cc66f-b897-4aec-883d-1a9fa90cbd6a",
       "credentials": {
         "telegramApi": {
-          "id": "",
-          "name": "Telegram API"
+          "id": "q7CNsecQRzTAvAZw",
+          "name": "Telegram account"
         }
       }
     },
@@ -129,18 +155,21 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"query\": \"deck:zbocznica::n8n Przód:*<b>\" + $('Parse translation').item.json.word + \"</b>*\" }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"query\": \"deck:vocabulary::słówka_moje Przód:*<b>\" + $('Parse translation').item.json.word + \"</b>*\" }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1200, -80],
-      "id": "t7-find",
+      "position": [
+        -1136,
+        64
+      ],
+      "id": "72de1efc-9e8d-4d90-be6e-f9af34672d0c",
       "name": "Check duplicate",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "",
-          "name": "Anki API Key"
+          "id": "r3ZoWHWbptMzXGDe",
+          "name": "login-anki"
         }
       }
     },
@@ -171,25 +200,34 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1440, -80],
-      "id": "t8-if-new",
+      "position": [
+        -896,
+        64
+      ],
+      "id": "6e559643-3c96-4209-b936-9bab9b4cfd60",
       "name": "Is new word?"
     },
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ '⚠️ Karta już istnieje w Anki, nie dodano: ' + $('Parse translation').item.json.word }}",
-        "additionalFields": {"appendAttribution": false}
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1680, 40],
-      "id": "t9-reply-dup",
+      "position": [
+        -656,
+        192
+      ],
+      "id": "9be4f333-d937-4ca2-9ec9-86bd1c3da611",
       "name": "Reply duplicate",
+      "webhookId": "999bec23-ff80-471f-9026-d704e6bfcf6c",
       "credentials": {
         "telegramApi": {
-          "id": "",
-          "name": "Telegram API"
+          "id": "q7CNsecQRzTAvAZw",
+          "name": "Telegram account"
         }
       }
     },
@@ -206,25 +244,30 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1680, -200],
-      "id": "t10-openai-card",
+      "position": [
+        -656,
+        -64
+      ],
+      "id": "97335050-89bf-4e8a-b1b5-e25caa881cbf",
       "name": "GPT-5-mini Card",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "",
-          "name": "OpenAI Bearer"
+          "id": "x1LIcKyhcOqqS85R",
+          "name": "openai-Anki"
         }
       }
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const data = JSON.parse(item.json.choices[0].message.content);\n  const t = $('Parse translation').first().json;\n  const word = t.word;\n  const translation = t.translation;\n  const lang = t.input_lang;\n  const ipa = data.ipa || '';\n  const ex1 = data.example1;\n  const ex1t = data.example1_translation;\n  const ex2 = data.example2;\n  const ex2t = data.example2_translation;\n  const ex3 = data.example3;\n  const ex3t = data.example3_translation;\n\n  let front, back;\n  if (lang === 'en') {\n    front = `<b>${word}</b>  <i>${ipa}</i><br><br><ul><li>${ex1}</li><li>${ex2}</li><li>${ex3}</li></ul>`;\n    back = `<b>${translation}</b><br><br><ul><li>${ex1t}</li><li>${ex2t}</li><li>${ex3t}</li></ul>`;\n  } else {\n    front = `<b>${word}</b><br><br><ul><li>${ex1}</li><li>${ex2}</li><li>${ex3}</li></ul>`;\n    back = `<b>${translation}</b>  <i>${ipa}</i><br><br><ul><li>${ex1t}</li><li>${ex2t}</li><li>${ex3t}</li></ul>`;\n  }\n\n  results.push({ json: { front, back } });\n}\nreturn results;"
+        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const data = JSON.parse(item.json.choices[0].message.content);\n  const t = $('Parse translation').first().json;\n  const word = t.word;\n  const translation = t.translation;\n  const lang = t.input_lang;\n  const ipa = data.ipa || '';\n  const ex1 = data.example1;\n  const ex1t = data.example1_translation;\n  const ex2 = data.example2;\n  const ex2t = data.example2_translation;\n  const ex3 = data.example3;\n  const ex3t = data.example3_translation;\n\n  const examples = (a, b, c) => `<div style=\"text-align:center\">• ${a}<br>• ${b}<br>• ${c}</div>`;\n\n  let front, back;\n  if (lang === 'en') {\n    front = `<b>${word}</b>  <i>${ipa}</i><br><br>${examples(ex1, ex2, ex3)}`;\n    back = `<b>${translation}</b><br><br>${examples(ex1t, ex2t, ex3t)}`;\n  } else {\n    front = `<b>${word}</b><br><br>${examples(ex1, ex2, ex3)}`;\n    back = `<b>${translation}</b>  <i>${ipa}</i><br><br>${examples(ex1t, ex2t, ex3t)}`;\n  }\n\n  results.push({ json: { front, back } });\n}\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1920, -200],
-      "id": "t11-parse-card",
+      "position": [
+        -416,
+        -64
+      ],
+      "id": "8ba256bf-249e-4b56-bbdb-bb3e38072901",
       "name": "Build card"
     },
     {
@@ -235,18 +278,21 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"notes\": [{ \"deck\": \"zbocznica::n8n\", \"model\": \"Podstawowy (z odwrotną kartą)\", \"fields\": { \"Przód\": $json.front, \"Tył\": $json.back }, \"tags\": [\"telegram\"] }], \"allow_duplicate\": true }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"notes\": [{ \"deck\": \"vocabulary::słówka_moje\", \"model\": \"Podstawowy (z odwrotną kartą)\", \"fields\": { \"Przód\": $json.front, \"Tył\": $json.back }, \"tags\": [\"telegram\"] }], \"allow_duplicate\": true }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2160, -200],
-      "id": "t12-add",
+      "position": [
+        -176,
+        -64
+      ],
+      "id": "113d355e-fa05-4112-aba2-c51819799c7d",
       "name": "add_notes",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "",
-          "name": "Anki API Key"
+          "id": "r3ZoWHWbptMzXGDe",
+          "name": "login-anki"
         }
       }
     },
@@ -260,13 +306,16 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2400, -200],
-      "id": "t13-sync",
+      "position": [
+        64,
+        -64
+      ],
+      "id": "6da8b22d-50d5-4e3e-a0d0-dd517672737c",
       "name": "sync",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "",
-          "name": "Anki API Key"
+          "id": "r3ZoWHWbptMzXGDe",
+          "name": "login-anki"
         }
       }
     }
@@ -399,6 +448,7 @@
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8a911858689e1ff9af0a8f7a2ec7ac72785f0d9e52e2026a5ec9e9e91ff6e70"
   }
 }

@@ -110,7 +110,7 @@ Liveness probe — sprawdza dostępność kolekcji Anki. Bez auth.
 
 ### `GET /decks`
 ```json
-{"decks": ["Default", "zbocznica::n8n"]}
+{"decks": ["Default", "vocabulary::słówka_moje"]}
 ```
 
 ### `GET /models`
@@ -128,7 +128,7 @@ Pre-check: które notatki da się dodać.
 ```json
 {
   "notes": [
-    {"deck": "zbocznica::n8n", "model": "Podstawowy (z odwrotną kartą)",
+    {"deck": "vocabulary::słówka_moje", "model": "Podstawowy (z odwrotną kartą)",
      "fields": {"Przód": "ephemeral", "Tył": "ulotny"}, "tags": ["telegram"]}
   ]
 }
@@ -141,7 +141,7 @@ Pre-check: które notatki da się dodać.
 ```json
 {
   "notes": [
-    {"deck": "zbocznica::n8n", "model": "Podstawowy (z odwrotną kartą)",
+    {"deck": "vocabulary::słówka_moje", "model": "Podstawowy (z odwrotną kartą)",
      "fields": {"Przód": "<b>ephemeral</b> <i>/ɪˈfem.ər.əl/</i>", "Tył": "<b>ulotny</b>"},
      "tags": ["telegram"]}
   ],
@@ -155,7 +155,7 @@ Pre-check: które notatki da się dodać.
 ### `POST /find_notes`
 Wyszukiwanie notatek (składnia Anki search).
 ```json
-{"query": "deck:zbocznica::n8n Przód:*ephemeral*"}
+{"query": "deck:vocabulary::słówka_moje Przód:*ephemeral*"}
 ```
 ```json
 {"count": 1, "notes": [{"id": 123, "fields": {"Przód": "...", "Tył": "..."}, "tags": ["telegram"]}]}
