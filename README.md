@@ -18,15 +18,9 @@ Telegram ──▶ n8n ──HTTP──▶ anki-creator ──sync──▶ Anki
 
 ## Workflow Telegram → Anki
 
-W katalogu `n8n/` znajdują się gotowe workflow n8n:
+W katalogu `n8n/` znajduje się gotowy workflow n8n: `workflow-telegram-anki.json`.
 
-| plik | opis |
-| --- | --- |
-| `workflow1-word-generator.json` | Codzienny generator "słowa dnia" (schedule → AI → Postgres → email) |
-| `workflow2-notification.json` | Notyfikacja email ze słówkiem dnia + podsumowanie tygodnia |
-| `workflow3-telegram-anki.json` | **Główny workflow**: Telegram → AI → Anki |
-
-### workflow3 — jak działa
+### Jak działa
 
 ```
 Telegram → GPT-4o-mini (tłumaczenie + walidacja) → Parser → Is valid?
@@ -89,7 +83,21 @@ docker network connect n8n-compose_default anki-creator
 
 **Uwaga:** po każdym `docker compose up -d` (recreate kontenera) trzeba ponownie podłączyć sieć.
 
-W n8n utwórz credential "Header Auth" z `X-API-Key` = wartość `API_KEY` z `.env`. W workflow HTTP Request nodes kieruj na `http://anki-creator:8000`.
+### Credentials w n8n
+
+Workflow wymaga 3 credentials:
+
+| nazwa w n8n | typ | konfiguracja |
+| --- | --- | --- |
+| **Telegram API** | Telegram | Bot token z [@BotFather](https://t.me/BotFather) |
+| **OpenAI Bearer** | Header Auth | Name: `Authorization`, Value: `Bearer sk-...` (klucz API OpenAI) |
+| **Anki API Key** | Header Auth | Name: `X-API-Key`, Value: wartość `API_KEY` z `.env` |
+
+Po imporcie workflow (`n8n/workflow-telegram-anki.json`) przypisz credentials do każdego noda:
+
+- **Telegram Trigger**, **Reply OK**, **Reply invalid**, **Reply duplicate** → Telegram API
+- **GPT-4o-mini Translate**, **GPT-5-mini Card** → OpenAI Bearer
+- **Check duplicate**, **add_notes**, **sync** → Anki API Key
 
 ## API
 
