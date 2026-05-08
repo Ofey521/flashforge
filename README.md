@@ -103,6 +103,8 @@ Po imporcie workflow (`n8n/workflow-telegram-anki.json`) przypisz credentials do
 
 Wszystkie endpointy poza `/healthz` wymagają nagłówka `X-API-Key`.
 
+Endpointy `add_notes`, `can_add` i `find_notes` oczekują nazwy talii w request body (`deck` / `query`). API nie ma domyślnej talii — nazwa jest przekazywana przez workflow n8n (hardcoded w nodach Check duplicate i add_notes).
+
 ### `GET /healthz`
 Liveness probe — sprawdza dostępność kolekcji Anki. Bez auth.
 

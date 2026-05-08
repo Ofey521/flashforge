@@ -129,7 +129,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"query\": \"deck:zbocznica::n8n Przód:*\" + $('Parse translation').item.json.word + \"*\" }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"query\": \"deck:zbocznica::n8n Przód:*<b>\" + $('Parse translation').item.json.word + \"</b>*\" }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
