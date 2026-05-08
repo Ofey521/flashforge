@@ -24,15 +24,17 @@ W katalogu `n8n/` znajduje się gotowy workflow n8n: `workflow-telegram-anki.jso
 
 ```
 Telegram → GPT-4o-mini (tłumaczenie + walidacja) → Parser → Is valid?
-  → TAK → Reply OK (natychmiastowa odpowiedź) → Check duplicate → Is new word?
-              → TAK → GPT-5-mini (IPA + examples) → Build card → add_notes → sync
+  → TAK → Reply OK (natychmiastowa odpowiedź) → Sync (pre) → Check duplicate → Is new word?
+              → TAK → GPT-5-mini (IPA + examples) → Build card → add_notes → Sync (post)
               → NIE → Reply "karta już istnieje"
   → NIE → Reply "nie rozpoznaję słowa"
 ```
 
-- **GPT-4o-mini** — szybkie tłumaczenie EN↔PL, walidacja słowa, autokorekta literówek
-- **GPT-5-mini** — generowanie pełnej karty: transkrypcja IPA, 3 przykłady + tłumaczenia
-- Odpowiedź na Telegramie leci natychmiast po tłumaczeniu, karta Anki tworzy się w tle
+- **GPT-4o-mini** — szybkie tłumaczenie EN↔PL, walidacja słowa, autokorekta literówek. Dla wieloznacznych słów (np. *strain*, *set*, *run*) wybiera **jedno dominujące znaczenie**, zwraca 2 tłumaczenia tego samego sensu (synonim/odmiana gramatyczna) oraz `meaning_hint` — krótki opis wybranego znaczenia po angielsku
+- **GPT-5-mini** — generowanie pełnej karty: transkrypcja IPA, 3 przykłady + tłumaczenia. Dostaje `meaning_hint` z poprzedniego kroku i ma instrukcję, żeby wszystkie przykłady oddawały dokładnie to znaczenie — eliminuje to rozjazd między tłumaczeniami na froncie karty a sensem zdań przykładowych
+- **Sync (pre)** — pull z AnkiWeb przed sprawdzeniem duplikatów, żeby `Check duplicate` widział karty dodane z innych urządzeń
+- **Sync (post)** — push nowej karty na AnkiWeb po dodaniu
+- Odpowiedź na Telegramie leci natychmiast po tłumaczeniu, sync i karta Anki tworzą się w tle
 
 ## Wymagania
 
@@ -97,7 +99,7 @@ Po imporcie workflow (`n8n/workflow-telegram-anki.json`) przypisz credentials do
 
 - **Telegram Trigger**, **Reply OK**, **Reply invalid**, **Reply duplicate** → Telegram API
 - **GPT-4o-mini Translate**, **GPT-5-mini Card** → OpenAI Bearer
-- **Check duplicate**, **add_notes**, **sync** → Anki API Key
+- **Check duplicate**, **add_notes**, **Sync (pre)**, **Sync (post)** → Anki API Key
 
 ## API
 

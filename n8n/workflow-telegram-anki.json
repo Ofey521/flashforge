@@ -32,7 +32,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"model\": \"gpt-4o-mini\", \"response_format\": { \"type\": \"json_object\" }, \"messages\": [ { \"role\": \"system\", \"content\": \"Jesteś asystentem do nauki słówek angielsko-polskich.\\n\\nZADANIE:\\nDostajesz słowo lub wyrażenie — po angielsku lub po polsku.\\n\\n1. Sprawdź czy podany input jest PRAWDZIWYM słowem lub wyrażeniem istniejącym w języku angielskim lub polskim.\\n   - Jeśli to LITERÓWKA (np. \\\"throught\\\", \\\"protekt\\\", \\\"chornić\\\", \\\"apeart\\\") — popraw je na POPRAWNĄ formę i użyj POPRAWIONEJ wersji w input_word. Przykład: input \\\"apeart\\\" → input_word: \\\"appear\\\", corrected_from: \\\"apeart\\\". NIGDY nie wpisuj oryginalnej literówki w input_word.\\n   - Jeśli to kompletna bzdura (losowe litery, np. \\\"ahdj\\\", \\\"xkqw\\\") — zwróć:\\n   {\\\"valid\\\": false, \\\"reason\\\": \\\"krótki powód odrzucenia\\\"}\\n   - Jeśli TAK — kontynuuj poniżej.\\n2. Wykryj język.\\n3. Przetłumacz na drugi język.\\n\\nFORMAT ODPOWIEDZI (słowo poprawne):\\nZwróć WYŁĄCZNIE poprawny JSON.\\n{\\n  \\\"valid\\\": true,\\n  \\\"input_word\\\": \\\"podane słowo (poprawione jeśli była literówka)\\\",\\n  \\\"input_lang\\\": \\\"en\\\" lub \\\"pl\\\",\\n  \\\"translation\\\": \\\"tłumaczenie\\\",\\n  \\\"corrected_from\\\": \\\"oryginalny input jeśli poprawiono, puste jeśli nie\\\"\\n}\\n\\nZero objaśnień — tylko JSON.\" }, { \"role\": \"user\", \"content\": \"\" + $json.message.text + \"\" } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"gpt-4o-mini\", \"response_format\": { \"type\": \"json_object\" }, \"messages\": [ { \"role\": \"system\", \"content\": \"Jesteś asystentem do nauki słówek angielsko-polskich.\\n\\nZADANIE:\\nDostajesz słowo lub wyrażenie — po angielsku lub po polsku.\\n\\n1. Sprawdź czy podany input jest PRAWDZIWYM słowem lub wyrażeniem istniejącym w języku angielskim lub polskim.\\n   - Jeśli to LITERÓWKA (np. \\\"throught\\\", \\\"protekt\\\", \\\"chornić\\\", \\\"apeart\\\") — popraw je na POPRAWNĄ formę i użyj POPRAWIONEJ wersji w input_word. Przykład: input \\\"apeart\\\" → input_word: \\\"appear\\\", corrected_from: \\\"apeart\\\". NIGDY nie wpisuj oryginalnej literówki w input_word.\\n   - Jeśli to kompletna bzdura (losowe litery, np. \\\"ahdj\\\", \\\"xkqw\\\") — zwróć:\\n   {\\\"valid\\\": false, \\\"reason\\\": \\\"krótki powód odrzucenia\\\"}\\n   - Jeśli TAK — kontynuuj poniżej.\\n2. Wykryj język.\\n3. WYBIERZ JEDNO dominujące znaczenie — najczęstsze, codzienne (nie specjalistyczne). Jeśli słowo jest wieloznaczne (np. \\\"strain\\\", \\\"set\\\", \\\"run\\\"), wybierz najpopularniejszy sens.\\n4. Przetłumacz WYBRANE znaczenie — podaj DWA tłumaczenia oddzielone średnikiem (np. \\\"nakręcić; skończyć\\\"). OBA muszą dotyczyć TEGO SAMEGO znaczenia (synonim, bliskoznacznik lub odmiana gramatyczna). NIE MIESZAJ różnych sensów słowa.\\n5. Podaj meaning_hint po angielsku (2-5 słów) — krótki opis wybranego znaczenia, np. \\\"physical/mental pressure\\\", \\\"muscle injury\\\", \\\"to wind up a mechanism\\\".\\n\\nFORMAT ODPOWIEDZI (słowo poprawne):\\nZwróć WYŁĄCZNIE poprawny JSON.\\n{\\n  \\\"valid\\\": true,\\n  \\\"input_word\\\": \\\"podane słowo (poprawione jeśli była literówka)\\\",\\n  \\\"input_lang\\\": \\\"en\\\" lub \\\"pl\\\",\\n  \\\"translation\\\": \\\"tłumaczenie1; tłumaczenie2\\\",\\n  \\\"meaning_hint\\\": \\\"krótki opis sensu po angielsku\\\",\\n  \\\"corrected_from\\\": \\\"oryginalny input jeśli poprawiono, puste jeśli nie\\\"\\n}\\n\\nZero objaśnień — tylko JSON.\" }, { \"role\": \"user\", \"content\": \"\" + $json.message.text + \"\" } ] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -53,7 +53,7 @@
     {
       "parameters": {
         "language": "python",
-        "pythonCode": "import json\n\nresults = []\nfor item in items:\n    content = item['json']['choices'][0]['message']['content']\n    data = json.loads(content)\n\n    if not data.get('valid', True):\n        results.append({'json': {\n            'valid': False,\n            'reason': data.get('reason', 'nierozpoznane słowo'),\n        }})\n        continue\n\n    results.append({'json': {\n        'valid': True,\n        'word': data['input_word'],\n        'translation': data['translation'],\n        'input_lang': data.get('input_lang', 'en'),\n        'corrected_from': data.get('corrected_from', ''),\n    }})\n\nreturn results"
+        "pythonCode": "import json\n\nresults = []\nfor item in items:\n    content = item['json']['choices'][0]['message']['content']\n    data = json.loads(content)\n\n    if not data.get('valid', True):\n        results.append({'json': {\n            'valid': False,\n            'reason': data.get('reason', 'nierozpoznane słowo'),\n        }})\n        continue\n\n    results.append({'json': {\n        'valid': True,\n        'word': data['input_word'],\n        'translation': data['translation'],\n        'meaning_hint': data.get('meaning_hint', ''),\n        'input_lang': data.get('input_lang', 'en'),\n        'corrected_from': data.get('corrected_from', ''),\n    }})\n\nreturn results"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -150,6 +150,29 @@
     {
       "parameters": {
         "method": "POST",
+        "url": "http://anki-creator:8000/sync",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1256,
+        64
+      ],
+      "id": "30b4a61a-56de-4fd3-9742-c4563fda4a20",
+      "name": "Sync (pre)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "r3ZoWHWbptMzXGDe",
+          "name": "login-anki"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
         "url": "http://anki-creator:8000/find_notes",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -239,7 +262,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"model\": \"gpt-5.4-mini\", \"response_format\": { \"type\": \"json_object\" }, \"messages\": [ { \"role\": \"system\", \"content\": \"Generujesz karty Anki do nauki słówek angielsko-polskich.\\n\\nDostajesz słowo i jego tłumaczenie. Wygeneruj:\\n- transkrypcję IPA słowa angielskiego\\n- 3 krótkie, naturalne przykłady użycia w języku oryginalnym (B2)\\n- tłumaczenia tych przykładów na drugi język\\n\\nZwróć WYŁĄCZNIE JSON:\\n{\\n  \\\"ipa\\\": \\\"/transkrypcja/\\\",\\n  \\\"example1\\\": \\\"przykład 1\\\",\\n  \\\"example1_translation\\\": \\\"tłumaczenie 1\\\",\\n  \\\"example2\\\": \\\"przykład 2\\\",\\n  \\\"example2_translation\\\": \\\"tłumaczenie 2\\\",\\n  \\\"example3\\\": \\\"przykład 3\\\",\\n  \\\"example3_translation\\\": \\\"tłumaczenie 3\\\"\\n}\\n\\nPrzykłady w języku oryginalnym słowa. Zero objaśnień — tylko JSON.\" }, { \"role\": \"user\", \"content\": \"word: \" + $('Parse translation').item.json.word + \"\\ntranslation: \" + $('Parse translation').item.json.translation + \"\\nlang: \" + $('Parse translation').item.json.input_lang } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"gpt-5.4-mini\", \"response_format\": { \"type\": \"json_object\" }, \"messages\": [ { \"role\": \"system\", \"content\": \"Generujesz karty Anki do nauki słówek angielsko-polskich.\\n\\nDostajesz słowo, jego tłumaczenie i meaning_hint (krótki opis znaczenia po angielsku). Wygeneruj:\\n- transkrypcję IPA słowa angielskiego\\n- 3 krótkie, naturalne przykłady użycia w języku oryginalnym (B2)\\n- tłumaczenia tych przykładów na drugi język\\n\\nKRYTYCZNE: Wszystkie 3 przykłady MUSZĄ używać słowa w znaczeniu opisanym przez meaning_hint. Nie mieszaj innych sensów słowa, nawet jeśli są popularne.\\n\\nZwróć WYŁĄCZNIE JSON:\\n{\\n  \\\"ipa\\\": \\\"/transkrypcja/\\\",\\n  \\\"example1\\\": \\\"przykład 1\\\",\\n  \\\"example1_translation\\\": \\\"tłumaczenie 1\\\",\\n  \\\"example2\\\": \\\"przykład 2\\\",\\n  \\\"example2_translation\\\": \\\"tłumaczenie 2\\\",\\n  \\\"example3\\\": \\\"przykład 3\\\",\\n  \\\"example3_translation\\\": \\\"tłumaczenie 3\\\"\\n}\\n\\nPrzykłady w języku oryginalnym słowa. Zero objaśnień — tylko JSON.\" }, { \"role\": \"user\", \"content\": \"word: \" + $('Parse translation').item.json.word + \"\\ntranslation: \" + $('Parse translation').item.json.translation + \"\\nmeaning_hint: \" + $('Parse translation').item.json.meaning_hint + \"\\nlang: \" + $('Parse translation').item.json.input_lang } ] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -311,7 +334,7 @@
         -64
       ],
       "id": "6da8b22d-50d5-4e3e-a0d0-dd517672737c",
-      "name": "sync",
+      "name": "Sync (post)",
       "credentials": {
         "httpHeaderAuth": {
           "id": "r3ZoWHWbptMzXGDe",
@@ -326,6 +349,17 @@
         [
           {
             "node": "GPT-4o-mini Translate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync (pre)": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate",
             "type": "main",
             "index": 0
           }
@@ -376,7 +410,7 @@
       "main": [
         [
           {
-            "node": "Check duplicate",
+            "node": "Sync (pre)",
             "type": "main",
             "index": 0
           }
@@ -438,7 +472,7 @@
       "main": [
         [
           {
-            "node": "sync",
+            "node": "Sync (post)",
             "type": "main",
             "index": 0
           }
