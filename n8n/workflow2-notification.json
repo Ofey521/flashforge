@@ -1,0 +1,211 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "mat.janczura@gmail.com,alicjapawlak3007@gmail.com",
+        "subject": "Słówko dnia! ",
+        "message": "={{ \n  $items()\n  .map(item => \n    `<div style=\"margin-bottom:20px;\">\n      <p><strong>${item.json[\"słowo_ang\"]}</strong> : <em>${item.json[\"słowo_pl\"]}</em></p>\n      <ul style=\"margin-top:5px;\">\n        <li><b>${item.json[\"przykład1_ang\"]}</b><br>${item.json[\"przykład1_pl\"]}</li>\n        <li><b>${item.json[\"przykład2_ang\"]}</b><br>${item.json[\"przykład2_pl\"]}</li>\n        <li><b>${item.json[\"przykład3_ang\"]}</b><br>${item.json[\"przykład3_pl\"]}</li>\n      </ul>\n    </div>`\n  )\n  .join(\"<hr>\") \n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [336, -288],
+      "id": "3d79406a-5a7c-49aa-abc1-af7de85984f2",
+      "name": "notification",
+      "webhookId": "fa481d69-63c0-4b64-87c7-57dd292de4f1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "X2f06cnXnJ66Ep5d",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-352, -96],
+      "id": "62160a60-f8be-4eb2-a909-9ee65e611c07",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "word_of_day",
+          "mode": "list",
+          "cachedResultName": "word_of_day"
+        },
+        "limit": 1,
+        "sort": {
+          "values": [
+            {
+              "column": "ref",
+              "direction": "DESC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, -288],
+      "id": "98298075-183a-4967-9e43-32d61ad11ccf",
+      "name": "SELECT - last word",
+      "credentials": {
+        "postgres": {
+          "id": "MP58PHgEZjihTiRH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "word_of_day",
+          "mode": "list",
+          "cachedResultName": "word_of_day"
+        },
+        "limit": 7,
+        "sort": {
+          "values": [
+            {
+              "column": "ref",
+              "direction": "DESC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [0, -96],
+      "id": "3ec1402a-35f4-4045-8e6d-1e723d5611c7",
+      "name": "SELECT - last week",
+      "credentials": {
+        "postgres": {
+          "id": "MP58PHgEZjihTiRH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "triggered",
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-352, -288],
+      "id": "3e5f0046-98c2-46ee-bc78-028d04146271",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "mat.janczura@gmail.com,alicjapawlak3007@gmail.com",
+        "subject": "Podsumowanie tygodnia! ",
+        "message": "={{ \n  $items()\n  .map(item => \n    `<div style=\"margin-bottom:20px;\">\n      <p><strong>${item.json[\"słowo_ang\"]}</strong> : <em>${item.json[\"słowo_pl\"]}</em></p>\n      <ul style=\"margin-top:5px;\">\n        <li><b>${item.json[\"przykład1_ang\"]}</b><br>${item.json[\"przykład1_pl\"]}</li>\n        <li><b>${item.json[\"przykład2_ang\"]}</b><br>${item.json[\"przykład2_pl\"]}</li>\n        <li><b>${item.json[\"przykład3_ang\"]}</b><br>${item.json[\"przykład3_pl\"]}</li>\n      </ul>\n    </div>`\n  )\n  .join(\"<hr>\") \n}}",
+        "options": {
+          "senderName": "notification"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [336, -96],
+      "id": "8ffc3036-be44-4310-99f3-795cd413ad72",
+      "name": "notification1",
+      "webhookId": "fa481d69-63c0-4b64-87c7-57dd292de4f1",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "X2f06cnXnJ66Ep5d",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "notification": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "SELECT - last week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SELECT - last word": {
+      "main": [
+        [
+          {
+            "node": "notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SELECT - last week": {
+      "main": [
+        [
+          {
+            "node": "notification1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SELECT - last word",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8a911858689e1ff9af0a8f7a2ec7ac72785f0d9e52e2026a5ec9e9e91ff6e70"
+  }
+}

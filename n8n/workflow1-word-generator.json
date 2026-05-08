@@ -1,0 +1,317 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "wygeneruj słowo dnia",
+        "options": {
+          "systemMessage": "Jesteś generatorzem „słowa dnia".\n\nZADANIE:\n- Wybierz jedno słowo z języka angielskiego i przetłumacz je na polski. Skorzystaj na przykład z cambridge dictionary.\n- Podaj 3 krótkie przykłady użycia w języku angielskim ORAZ ich tłumaczenia na polski.\n\nDODATKOWY WARUNEK:\nPoniżej masz listę słów angielskich, które JUŻ BYŁY użyte wcześniej.\nNie wybieraj żadnego z nich jako \"słowo_ang\".\nLista: {{ $json.used_words }}\n\n\nFORMAT ODPOWIEDZI:\nZwróć WYŁĄCZNIE poprawny JSON (słowo „JSON" jest celowe). Usuń znaki nowej linii.\nZwróć obiekt z kluczem \"items\", gdzie \"items\" to TABLICA słowników o dokładnie takich kluczach:\n{\n  \"timestamp\": \"YYYY-MM-DD\",\n  \"słowo_pl\": \"…\",\n  \"słowo_ang\": \"…\",\n  \"przykład1_ang\": \"…\",\n  \"przykład1_pl\": \"…\",\n  \"przykład2_ang\": \"…\",\n  \"przykład2_pl\": \"…\",\n  \"przykład3_ang\": \"…\",\n  \"przykład3_pl\": \"…\"\n}\nUżyj bieżącej daty w \"timestamp\". Zero komentarzy — tylko JSON z polem \"items\".\n\nKRYTERIA:\n- Poziom B2, naturalne, krótkie zdania (1–2 linijki).\n- Zero objaśnień — tylko JSON. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [528, -176],
+      "id": "2e8cd4e2-9356-45f4-9cd2-4a13e9f1d1e9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "id"
+        },
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [464, 64],
+      "id": "82b5bff5-07c6-4a65-9bd0-845d9d383b5e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "VWAKO8SkKqElZEGm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "ref",
+        "tableName": "angielski"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [592, 64],
+      "id": "5c99d16f-959a-43ea-ac1f-ca904287954e",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "MP58PHgEZjihTiRH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [80, -176],
+      "id": "d2ef7b9c-cd3e-47e0-ab7f-345a8a1206e1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTimeTool",
+      "typeVersion": 2,
+      "position": [720, 64],
+      "id": "6ac9de35-c436-493b-a141-691cfb00a819",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ebfc12f8-726f-4b85-ad20-f40058906f0a",
+              "leftValue": "={{ $json.inserted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1216, -176],
+      "id": "041014b0-c7dd-4792-92cb-636d1d2e9d6e",
+      "name": "if insert return gitówa"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH inp AS (\n  SELECT $1::jsonb AS data\n),\nrows AS (\n  SELECT jsonb_array_elements(\n    CASE jsonb_typeof(data)\n      WHEN 'array'  THEN data\n      WHEN 'object' THEN jsonb_build_array(data) \n      ELSE '[]'::jsonb\n    END\n  ) AS elem\n  FROM inp\n),\nmapped AS (\n  SELECT\n    (elem->>'timestamp')::date AS \"timestamp\",\n    elem->>'słowo_pl'         AS \"słowo_pl\",\n    elem->>'słowo_ang'        AS \"słowo_ang\",\n    elem->>'przykład1_ang'    AS \"przykład1_ang\",\n    elem->>'przykład1_pl'     AS \"przykład1_pl\",\n    elem->>'przykład2_ang'    AS \"przykład2_ang\",\n    elem->>'przykład2_pl'     AS \"przykład2_pl\",\n    elem->>'przykład3_ang'    AS \"przykład3_ang\",\n    elem->>'przykład3_pl'     AS \"przykład3_pl\",\n    elem                      AS raw_json\n  FROM rows\n),\nins AS (\n  INSERT INTO public.word_of_day (\n    \"timestamp\",\"słowo_pl\",\"słowo_ang\",\n    \"przykład1_ang\",\"przykład1_pl\",\n    \"przykład2_ang\",\"przykład2_pl\",\n    \"przykład3_ang\",\"przykład3_pl\",\n    raw_json\n  )\n  SELECT\n    \"timestamp\",\"słowo_pl\",\"słowo_ang\",\n    \"przykład1_ang\",\"przykład1_pl\",\n    \"przykład2_ang\",\"przykład2_pl\",\n    \"przykład3_ang\",\"przykład3_pl\",\n    raw_json\n  FROM mapped\n  ON CONFLICT (\"słowo_ang\") DO NOTHING\n  RETURNING 1 AS inserted\n),\nresult AS (\n  -- jeśli coś się wstawiło, mamy inserted = true\n  SELECT TRUE AS inserted FROM ins\n  UNION ALL\n  -- jeśli nic się nie wstawiło, zwróć 1 wiersz z inserted = false\n  SELECT FALSE AS inserted\n  WHERE NOT EXISTS (SELECT 1 FROM ins)\n)\nSELECT inserted FROM result;",
+        "options": {
+          "queryReplacement": "={{ JSON.stringify($json) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [1040, -176],
+      "id": "985d6322-6684-40c2-b964-5d29d15fb717",
+      "name": "Insert do word_of_day",
+      "credentials": {
+        "postgres": {
+          "id": "MP58PHgEZjihTiRH",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import json\nresults = []\n\nfor item in items:\n    output_raw = item[\"json\"][\"output\"]\n    output = json.loads(output_raw)\n    first_item = output[\"items\"][0]\n\n    # wyciągamy pierwsze polskie słowo przed średnikiem\n    slowo_pl = first_item[\"słowo_pl\"].split(\";\")[0].strip()\n\n    # tworzymy nowy, prosty obiekt json\n    new_json = {\n        \"timestamp\": first_item[\"timestamp\"],\n        \"słowo_pl\": slowo_pl,\n        \"słowo_ang\": first_item[\"słowo_ang\"],\n        \"przykład1_ang\": first_item[\"przykład1_ang\"],\n        \"przykład1_pl\": first_item[\"przykład1_pl\"],\n        \"przykład2_ang\": first_item[\"przykład2_ang\"],\n        \"przykład2_pl\": first_item[\"przykład2_pl\"],\n        \"przykład3_ang\": first_item[\"przykład3_ang\"],\n        \"przykład3_pl\": first_item[\"przykład3_pl\"],\n    }\n\n    results.append({\"json\": new_json})\n\n# zwracamy listę elementów (tak jak oczekuje n8n)\nreturn results"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [848, -176],
+      "id": "eb85f64e-01ba-43ef-ba0c-40657c0d27b2",
+      "name": "parser"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cadJaQnH0rdljDHi",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cadJaQnH0rdljDHi",
+          "cachedResultName": "[P] English - notification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "triggered",
+              "displayName": "triggered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1536, -192],
+      "id": "bb044d19-69a2-4477-bc15-6f2ccf8b5ab9",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_agg(\"słowo_ang\") AS used_words\nFROM (\n  SELECT \"słowo_ang\"\n  FROM public.word_of_day\n  ORDER BY \"timestamp\" DESC\n  LIMIT 200\n) t;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [288, -176],
+      "id": "edc8123d-d78f-4743-9179-2d86d910b943",
+      "name": "Co już było",
+      "credentials": {
+        "postgres": {
+          "id": "MP58PHgEZjihTiRH",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Co już było",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if insert return gitówa": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert do word_of_day": {
+      "main": [
+        [
+          {
+            "node": "if insert return gitówa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parser": {
+      "main": [
+        [
+          {
+            "node": "Insert do word_of_day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Co już było": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8a911858689e1ff9af0a8f7a2ec7ac72785f0d9e52e2026a5ec9e9e91ff6e70"
+  }
+}

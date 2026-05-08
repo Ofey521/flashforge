@@ -1,0 +1,25 @@
+services:
+  anki-creator:
+    build: .
+    container_name: anki-creator
+    restart: unless-stopped
+    environment:
+      ANKI_DATA_DIR: /data
+      ANKIWEB_USERNAME: ${ANKIWEB_USERNAME}
+      ANKIWEB_PASSWORD: ${ANKIWEB_PASSWORD}
+      ANKIWEB_ENDPOINT: ${ANKIWEB_ENDPOINT:-}
+      API_KEY: ${API_KEY}
+    volumes:
+      - ./data:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
